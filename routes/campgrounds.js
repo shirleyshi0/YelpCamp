@@ -38,7 +38,7 @@ router.post("/", isLoggedIn, (req, res) => {
             console.log(err);
         }
         else {
-            console.log(newlyCreated);
+            //console.log(newlyCreated);
             res.redirect("/campgrounds");
         }
     });
@@ -59,6 +59,39 @@ router.get("/:id", (req, res) => {
     });
 });
 
+// EDIT - campground edit form
+router.get("/:id/edit", checkCampgroundOwnership, (req, res) => {
+    Campground.findById(req.params.id, (err, foundCampground) => {
+        res.render("campgrounds/edit", { campground: foundCampground });
+    });
+});
+
+// UPDATE - update campground to the DB
+router.put("/:id", checkCampgroundOwnership, (req, res) => {
+    Campground.findByIdAndUpdate(req.params.id, req.body.campground, (err, updatedCampground) => {
+        if (err) {
+            console.log(err);
+            res.redirect("/campgrounds");
+        }
+        else {
+            res.redirect("/campgrounds/" + req.params.id);
+        }
+    });
+});
+
+// DELETE - Deletes a campground
+router.delete("/:id", checkCampgroundOwnership, (req, res) => {
+    Campground.findByIdAndDelete(req.params.id, (err) => {
+        if (err) {
+            console.log(err);
+            res.redirect("/campgrounds");
+        }
+        else {
+            res.redirect("/campgrounds");
+        }
+    });
+});
+
 //Middleware
 function isLoggedIn(req, res, next) {
     if (req.isAuthenticated()) {
@@ -66,6 +99,29 @@ function isLoggedIn(req, res, next) {
     }
     else {
         res.redirect("/login");
+    }
+}
+
+function checkCampgroundOwnership(req, res, next) {
+    if (req.isAuthenticated()) {
+        Campground.findById(req.params.id, (err, foundCampground) => {
+            if (err) {
+                console.log(err);
+                res.redirect("back");
+            }
+            else {
+                if (foundCampground.author.id.equals(req.user._id)) {
+                    next();
+                }
+                else {
+                    res.redirect("back");
+                }
+
+            }
+        });
+    }
+    else {
+        res.redirect("back");
     }
 }
 

@@ -1,4 +1,5 @@
-const mongoose = require('mongoose');
+const mongoose = require('mongoose'),
+    Comment = require("./comment");
 
 let campgroundSchema = new mongoose.Schema({
     name: String,
@@ -17,6 +18,20 @@ let campgroundSchema = new mongoose.Schema({
             ref: "Comment"
         }
     ]
+});
+
+// PRE HOOK - delete comments along with campground
+campgroundSchema.pre('findOneAndDelete', async function () {
+    console.log("prehook triggered");
+    let thisCampground = await this.model.findOne({
+        _id: this.getFilter()._id
+    });
+    console.log(thisCampground);
+    await Comment.deleteMany({
+        _id: {
+            $in: thisCampground.comments
+        }
+    });
 });
 
 let Campground = mongoose.model("Campground", campgroundSchema);
