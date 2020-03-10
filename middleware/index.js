@@ -3,15 +3,16 @@ const Campground = require('../models/campground'),
 
 let middlewareObj = {};
 
-middlewareObj.checkCampgroundOwnership = (req, res, next) => {
+middlewareObj.checkOwnership = (req, res, next) => {
+    let Obj = (typeof req.params.comment_id == 'undefined')? Campground: Comment;
     if (req.isAuthenticated()) {
-        Campground.findById(req.params.id, (err, foundCampground) => {
+        Obj.findById(req.params.comment_id||req.params.id, (err, foundObj) => {
             if (err) {
                 console.log(err);
                 res.redirect("back");
             }
             else {
-                if (foundCampground.author.id.equals(req.user._id)) {
+                if (foundObj.author.id.equals(req.user._id)) {
                     next();
                 }
                 else {
@@ -23,25 +24,6 @@ middlewareObj.checkCampgroundOwnership = (req, res, next) => {
     }
     else {
         res.redirect("back");
-    }
-}
-
-middlewareObj.checkCommentOwnership = (req, res, next) => {
-    if (req.isAuthenticated()) {
-        Comment.findById(req.params.comment_id, (err, foundComment) => {
-            if (err) {
-                console.log(err);
-                res.redirect("back");
-            }
-            else {
-                if (foundComment.author.id.equals(req.user.id)) {
-                    next();
-                }
-                else {
-                    res.redirect("back");
-                }
-            }
-        });
     }
 }
 
