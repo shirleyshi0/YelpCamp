@@ -26,7 +26,6 @@ campgroundSchema.pre('findOneAndDelete', async function () {
     let thisCampground = await this.model.findOne({
         _id: this.getFilter()._id
     });
-    console.log(thisCampground);
     await Comment.deleteMany({
         _id: {
             $in: thisCampground.comments
