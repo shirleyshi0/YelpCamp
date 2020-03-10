@@ -7,8 +7,9 @@ middlewareObj.checkOwnership = (req, res, next) => {
     let Obj = (typeof req.params.comment_id == 'undefined')? Campground: Comment;
     if (req.isAuthenticated()) {
         Obj.findById(req.params.comment_id||req.params.id, (err, foundObj) => {
-            if (err) {
+            if (err || !foundObj) {
                 console.log(err);
+                req.flash("error", "Something went wrong.");
                 res.redirect("back");
             }
             else {
@@ -16,6 +17,7 @@ middlewareObj.checkOwnership = (req, res, next) => {
                     next();
                 }
                 else {
+                    req.flash("error", "You dont have permission to do that!");
                     res.redirect("back");
                 }
 
@@ -23,6 +25,7 @@ middlewareObj.checkOwnership = (req, res, next) => {
         });
     }
     else {
+        req.flash("error", "You need to be logged in to do that!");
         res.redirect("back");
     }
 }
@@ -32,6 +35,7 @@ middlewareObj.isLoggedIn = (req, res, next) => {
         return next();
     } 
     else {
+        req.flash("error", "You need to be logged in to do that!");
         res.redirect("/login");
     }
 }
