@@ -1,3 +1,5 @@
+require('dotenv').config();
+
 const rp = require('request-promise'),
     express = require('express'),
     app = express(),
