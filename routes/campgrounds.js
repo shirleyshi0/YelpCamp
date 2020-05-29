@@ -102,30 +102,36 @@ router.get("/:id/edit", middleware.checkOwnership, (req, res) => {
 
 // UPDATE - update campground to the DB
 router.put("/:id", middleware.checkOwnership, (req, res) => {
-    geocoder.geocode(req.body.location, (err, updatedLocation) => {
-        if (err || !updatedLocation.length) {
-            req.flash("error", "Invalid address");
-            return res.redirect('back');
+    Campground.find({_id: req.params.id, location: req.body.location}, (err, data) => {
+        if (err) {
+            console.log(err);
         }
-        else {
-            req.body.campground.lat = updatedLocation[0].latitude;
-            req.body.campground.lng = updatedLocation[0].longitude;
-            req.body.campground.location = updatedLocation[0].formattedAddress;
-
-            Campground.findByIdAndUpdate(req.params.id, req.body.campground, (err, updatedCampground) => {
-                if (err) {
-                    console.log(err);
-                    req.flash("error", "Sorry, campground does not exist!");
-                    res.redirect("/campgrounds");
+        else if (!data.length) {
+            geocoder.geocode(req.body.location, (err, updatedLocation) => {
+                if (err || !updatedLocation.length) {
+                    req.flash("error", "Invalid address");
+                    return res.redirect('back');
                 }
                 else {
-                    req.flash('success', 'Successfully Updated!');
-                    res.redirect("/campgrounds/" + req.params.id);
+                    req.body.campground.lat = updatedLocation[0].latitude;
+                    req.body.campground.lng = updatedLocation[0].longitude;
+                    req.body.campground.location = updatedLocation[0].formattedAddress;
                 }
             });
         }
     });
 
+    Campground.findByIdAndUpdate(req.params.id, req.body.campground, (err, updatedCampground) => {
+        if (err) {
+            console.log(err);
+            req.flash("error", "Sorry, campground does not exist!");
+            res.redirect("/campgrounds");
+        }
+        else {
+            req.flash('success', 'Successfully Updated!');
+            res.redirect("/campgrounds/" + req.params.id);
+        }
+    });
     
 });
 
